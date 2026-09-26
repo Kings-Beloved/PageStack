@@ -1,5 +1,4 @@
 <?php
-
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
@@ -59,31 +58,3 @@ class Config {
         }
     }
 }
-?>
-?>
-// header("Access-Control-Allow-Origin: *");
-// header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-// header("Access-Control-Allow-Headers: Content-Type, Authorization");
-// header("Content-Type: application/json");
-
-// class Config {
-// private $host = 'localhost';
-// private $username = 'root';
-// private $database = 'book_store';
-// private $password = '';
-
-// protected $connection;
-
-// public function __construct()
-// {
-//     try{
-//         $this->connection = mysqli_connect($this->host, $this->username, $this->password, $this->database,);
-
-//     } catch(mysqli_sql_exception $e){
-//         echo 'connection failed because'. $e->getMessage();
-//     }
-
-//     }
-// }
-
-// $newConfig = new Config();
