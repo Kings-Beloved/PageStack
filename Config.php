@@ -12,7 +12,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 class Config {
-    // Read Railway environment variables dynamically, falling back to local defaults
     private $host;
     private $username;
     private $database;
@@ -23,11 +22,11 @@ class Config {
 
     public function __construct()
     {
-        $this->host     = getenv('MYSQLHOST') ?: 'localhost';
-        $this->username = getenv('MYSQLUSER') ?: 'root';
-        $this->password = getenv('MYSQLPASSWORD') ?: '';
-        $this->database = getenv('MYSQLDATABASE') ?: 'book_store';
-        $this->port     = getenv('MYSQLPORT') ?: 3306;
+        $this->host     = getenv('MYSQLHOST')     ?: ($_ENV['MYSQLHOST']     ?? 'localhost');
+        $this->username = getenv('MYSQLUSER')     ?: ($_ENV['MYSQLUSER']     ?? 'root');
+        $this->password = getenv('MYSQLPASSWORD') ?: ($_ENV['MYSQLPASSWORD'] ?? '');
+        $this->database = getenv('MYSQLDATABASE') ?: ($_ENV['MYSQLDATABASE'] ?? 'book_store');
+        $this->port     = getenv('MYSQLPORT')     ?: ($_ENV['MYSQLPORT']     ?? 3306);
 
         try {
             $this->connection = mysqli_connect(
@@ -45,6 +44,7 @@ class Config {
     }
 }
 
+?>
 // header("Access-Control-Allow-Origin: *");
 // header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 // header("Access-Control-Allow-Headers: Content-Type, Authorization");
