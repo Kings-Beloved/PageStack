@@ -31,11 +31,13 @@ $router->add('GET', '/check-schema', function() {
 $router->add('GET', '/update-schema', function() {
     $config = new Config();
     
-    // Modify username column to allow NULL values
-    $sql = "ALTER TABLE user MODIFY COLUMN username VARCHAR(100) NULL";
+    // Fix all remaining legacy columns at once
+    $sql = "ALTER TABLE user 
+            MODIFY COLUMN username VARCHAR(100) NULL,
+            MODIFY COLUMN password_hash VARCHAR(255) NULL";
             
     if (mysqli_query($config->connection, $sql)) {
-        echo json_encode(["status" => 200, "message" => "Username column modified successfully!"]);
+        echo json_encode(["status" => 200, "message" => "All schema constraints fixed successfully!"]);
     } else {
         echo json_encode(["status" => 500, "error" => mysqli_error($config->connection)]);
     }
