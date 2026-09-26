@@ -24,6 +24,27 @@ $router->add('GET', '/check-schema', function() {
 
     echo json_encode(["user_columns" => $columns]);
     exit();
+
+    
+});
+
+$router->add('GET', '/update-schema', function() {
+    $config = new Config();
+    
+    // Add missing columns to match your exact Auth.php naming
+    $sql = "ALTER TABLE user 
+            ADD COLUMN First_name VARCHAR(100),
+            ADD COLUMN Last_name VARCHAR(100),
+            ADD COLUMN Password VARCHAR(255),
+            ADD COLUMN Country VARCHAR(100),
+            ADD COLUMN Occupation VARCHAR(100)";
+            
+    if (mysqli_query($config->connection, $sql)) {
+        echo json_encode(["status" => 200, "message" => "Database schema updated successfully!"]);
+    } else {
+        echo json_encode(["status" => 500, "error" => mysqli_error($config->connection)]);
+    }
+    exit();
 });
 
 $method = $_SERVER['REQUEST_METHOD'];

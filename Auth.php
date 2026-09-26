@@ -12,39 +12,37 @@ $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
 class Auth extends Config{
-    public function create_user(){
+    public function create_user() {
     $info = file_get_contents('php://input');
     $details = json_decode($info);
-    $first_name = $details->firstName;
-    $last_name = $details->lastName;
-    $email = $details->Email;
-    $pass = $details->Password;
-    $nationality = $details->Nationality;
-    $occupation = $details->Occupation;
 
-    $password = password_hash($pass, PASSWORD_DEFAULT);
+    $first_name = $details->firstName ?? '';
+    $last_name  = $details->lastName ?? '';
+    $email      = $details->email ?? '';
+    $pass       = $details->password ?? '';
+    $country    = $details->country ?? $details->Nationality ?? '';
+    $occupation = $details->occupation ?? $details->Occupation ?? '';
 
-    $query = "SELECT * FROM user WHERE email = '$email' ";
+    $hashedPassword = password_hash($pass, PASSWORD_DEFAULT);
+
+    $query = "SELECT * FROM user WHERE email = '$email'";
     $result = mysqli_query($this->connection, $query);
 
-    if(mysqli_num_rows($result)>0){
-        echo json_encode(['status' => 400, 'message' => 'Instructor already has an account']);
-    }else{
-        $insertQuery = "INSERT INTO user (First_name, Last_name, Email, `Password`, Country, Occupation) VALUES ('$first_name', '$last_name', '$email', '$password', '$nationality', '$occupation')";
-
-
+    if (mysqli_num_rows($result) > 0) {
+        echo json_encode(['status' => 400, 'message' => 'User already has an account']);
+    } else {
+        $insertQuery = "INSERT INTO user (First_name, Last_name, email, Password, Country, Occupation) 
+                        VALUES ('$first_name', '$last_name', '$email', '$hashedPassword', '$country', '$occupation')";
+        
         $savedUser = mysqli_query($this->connection, $insertQuery);
-        if($savedUser){
-            echo json_encode(['status'=>200, 'message'=> 'Signup succesful']);
-    }else{
-             echo json_encode(['status'=>500, 'message'=> 'Error signing up, try again later']);
+
+        if ($savedUser) {
+            echo json_encode(['status' => 200, 'message' => 'Account created successfully']);
+        } else {
+            echo json_encode(['status' => 500, 'message' => mysqli_error($this->connection)]);
+        }
     }
-
-
-
-    }
-    }
-
+}
 
     public function login_user(){
         $info = file_get_contents('php://input');
