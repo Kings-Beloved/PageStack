@@ -17,7 +17,7 @@ class Config {
     private $password;
     private $port;
 
-    protected $connection;
+    public $connection;
 
     public function __construct()
     {
