@@ -29,13 +29,29 @@ class Config {
         $this->port     = getenv('MYSQLPORT')     ?: ($_ENV['MYSQLPORT']     ?? 3306);
 
         try {
-            $this->connection = mysqli_connect(
-                $this->host,
-                $this->username,
-                $this->password,
-                $this->database,
-                (int)$this->port
-            );
+            $this->connection = mysqli_init();
+
+            if ($this->host !== 'localhost' && $this->host !== '127.0.0.1') {
+                mysqli_ssl_set($this->connection, NULL, NULL, NULL, NULL, NULL);
+                mysqli_real_connect(
+                    $this->connection,
+                    $this->host,
+                    $this->username,
+                    $this->password,
+                    $this->database,
+                    (int)$this->port,
+                    MYSQLI_CLIENT_SSL
+                );
+            } else {
+                mysqli_real_connect(
+                    $this->connection,
+                    $this->host,
+                    $this->username,
+                    $this->password,
+                    $this->database,
+                    (int)$this->port
+                );
+            }
         } catch(mysqli_sql_exception $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
@@ -43,7 +59,7 @@ class Config {
         }
     }
 }
-
+?>
 ?>
 // header("Access-Control-Allow-Origin: *");
 // header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
