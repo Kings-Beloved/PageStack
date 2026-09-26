@@ -31,8 +31,12 @@ class Auth extends Config{
     if (mysqli_num_rows($result) > 0) {
         echo json_encode(['status' => 400, 'message' => 'User already has an account']);
     } else {
-        $insertQuery = "INSERT INTO user (First_name, Last_name, email, Password, Country, Occupation) 
-                        VALUES ('$first_name', '$last_name', '$email', '$hashedPassword', '$country', '$occupation')";
+
+
+        $username = !empty($first_name) ? $first_name : $email;
+
+        $insertQuery = "INSERT INTO user (username, First_name, Last_name, email, Password, Country, Occupation) 
+                VALUES ('$username', '$first_name', '$last_name', '$email', '$hashedPassword', '$country', '$occupation')";
         
         $savedUser = mysqli_query($this->connection, $insertQuery);
 

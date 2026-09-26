@@ -31,16 +31,11 @@ $router->add('GET', '/check-schema', function() {
 $router->add('GET', '/update-schema', function() {
     $config = new Config();
     
-    // Add missing columns to match your exact Auth.php naming
-    $sql = "ALTER TABLE user 
-            ADD COLUMN First_name VARCHAR(100),
-            ADD COLUMN Last_name VARCHAR(100),
-            ADD COLUMN Password VARCHAR(255),
-            ADD COLUMN Country VARCHAR(100),
-            ADD COLUMN Occupation VARCHAR(100)";
+    // Modify username column to allow NULL values
+    $sql = "ALTER TABLE user MODIFY COLUMN username VARCHAR(100) NULL";
             
     if (mysqli_query($config->connection, $sql)) {
-        echo json_encode(["status" => 200, "message" => "Database schema updated successfully!"]);
+        echo json_encode(["status" => 200, "message" => "Username column modified successfully!"]);
     } else {
         echo json_encode(["status" => 500, "error" => mysqli_error($config->connection)]);
     }
