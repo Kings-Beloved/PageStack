@@ -63,8 +63,8 @@ class Auth extends Config{
 
             if($verify){
                 $payload=[
-                    'First_name' => $foundUser['First_Name'],
-                    'Last_name' => $foundUser['Last_Name'],
+                    'First_name' => $foundUser['First_name'],
+                    'Last_name' => $foundUser['Last_name'],
 
                     'iat'=> time(),
                     'exp'=> time() + 3600
