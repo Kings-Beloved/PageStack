@@ -18,8 +18,8 @@ class Auth extends Config{
 
     $first_name = $details->firstName ?? '';
     $last_name  = $details->lastName ?? '';
-    $email      = $details->email ?? '';
-    $pass       = $details->password ?? '';
+    $email      = $details->Email ?? '';
+    $pass       = $details->Password ?? '';
     $country    = $details->country ?? $details->Nationality ?? '';
     $occupation = $details->occupation ?? $details->Occupation ?? '';
 
