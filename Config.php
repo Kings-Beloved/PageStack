@@ -21,42 +21,54 @@ class Config
     public $connection;
 
     public function __construct()
-    {
-        $this->host     = getenv('MYSQLHOST')     ?: ($_ENV['MYSQLHOST']     ?? ($_SERVER['MYSQLHOST']     ?? 'localhost'));
-        $this->username = getenv('MYSQLUSER')     ?: ($_ENV['MYSQLUSER']     ?? ($_SERVER['MYSQLUSER']     ?? 'root'));
-        $this->password = getenv('MYSQLPASSWORD') ?: ($_ENV['MYSQLPASSWORD'] ?? ($_SERVER['MYSQLPASSWORD'] ?? ''));
-        $this->database = getenv('MYSQLDATABASE') ?: ($_ENV['MYSQLDATABASE'] ?? ($_SERVER['MYSQLDATABASE'] ?? 'defaultdb'));
-        $this->port     = getenv('MYSQLPORT')     ?: ($_ENV['MYSQLPORT']     ?? ($_SERVER['MYSQLPORT']     ?? 3306));
-        try {
-            $this->connection = mysqli_init();
+{
+    // Retrieve environment variables safely across server environments
+    $this->host     = trim(getenv('MYSQLHOST')     ?: ($_ENV['MYSQLHOST']     ?? ($_SERVER['MYSQLHOST']     ?? 'localhost')));
+    $this->username = trim(getenv('MYSQLUSER')     ?: ($_ENV['MYSQLUSER']     ?? ($_SERVER['MYSQLUSER']     ?? 'root')));
+    $this->password = trim(getenv('MYSQLPASSWORD') ?: ($_ENV['MYSQLPASSWORD'] ?? ($_SERVER['MYSQLPASSWORD'] ?? '')));
+    $this->database = trim(getenv('MYSQLDATABASE') ?: ($_ENV['MYSQLDATABASE'] ?? ($_SERVER['MYSQLDATABASE'] ?? 'defaultdb')));
+    $this->port     = (int)(getenv('MYSQLPORT')    ?: ($_ENV['MYSQLPORT']     ?? ($_SERVER['MYSQLPORT']     ?? 3306)));
 
-            if ($this->host !== 'localhost' && $this->host !== '127.0.0.1') {
-                mysqli_ssl_set($this->connection, NULL, NULL, NULL, NULL, NULL);
-                // Disable strict peer verification for cloud MySQL if needed
-                mysqli_options($this->connection, MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, false);
-                mysqli_real_connect(
-                    $this->connection,
-                    $this->host,
-                    $this->username,
-                    $this->password,
-                    $this->database,
-                    (int)$this->port,
-                    MYSQLI_CLIENT_SSL
-                );
-            } else {
-                mysqli_real_connect(
-                    $this->connection,
-                    $this->host,
-                    $this->username,
-                    $this->password,
-                    $this->database,
-                    (int)$this->port
-                );
-            }
-        } catch (mysqli_sql_exception $e) {
+    try {
+        $this->connection = mysqli_init();
+
+        if (!$this->connection) {
+            die(json_encode(["error" => "mysqli_init failed"]));
+        }
+
+        // Configure connection timeouts to prevent hanging
+        mysqli_options($this->connection, MYSQLI_OPT_CONNECT_TIMEOUT, 10);
+
+        // Aiven requires SSL for remote connections
+        if ($this->host !== 'localhost' && $this->host !== '127.0.0.1') {
+            mysqli_ssl_set($this->connection, NULL, NULL, NULL, NULL, NULL);
+            mysqli_options($this->connection, MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, false);
+        }
+
+        $connected = @mysqli_real_connect(
+            $this->connection,
+            $this->host,
+            $this->username,
+            $this->password,
+            $this->database,
+            $this->port,
+            NULL,
+            ($this->host !== 'localhost' && $this->host !== '127.0.0.1') ? MYSQLI_CLIENT_SSL : 0
+        );
+
+        if (!$connected) {
             http_response_code(500);
-            echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
+            echo json_encode([
+                "error" => "Database connection failed: " . mysqli_connect_error(),
+                "debug_host" => $this->host,
+                "debug_port" => $this->port
+            ]);
             exit();
         }
+    } catch (\Throwable $e) {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+        exit();
     }
+}
 }
