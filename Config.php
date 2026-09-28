@@ -10,7 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-class Config {
+class Config
+{
     private $host;
     private $username;
     private $database;
@@ -21,17 +22,18 @@ class Config {
 
     public function __construct()
     {
-        $this->host     = getenv('MYSQLHOST')     ?: ($_ENV['MYSQLHOST']     ?? 'localhost');
-        $this->username = getenv('MYSQLUSER')     ?: ($_ENV['MYSQLUSER']     ?? 'root');
-        $this->password = getenv('MYSQLPASSWORD') ?: ($_ENV['MYSQLPASSWORD'] ?? '');
-        $this->database = getenv('MYSQLDATABASE') ?: ($_ENV['MYSQLDATABASE'] ?? 'book_store');
-        $this->port     = getenv('MYSQLPORT')     ?: ($_ENV['MYSQLPORT']     ?? 3306);
-
+        $this->host     = getenv('MYSQLHOST')     ?: ($_ENV['MYSQLHOST']     ?? ($_SERVER['MYSQLHOST']     ?? 'localhost'));
+        $this->username = getenv('MYSQLUSER')     ?: ($_ENV['MYSQLUSER']     ?? ($_SERVER['MYSQLUSER']     ?? 'root'));
+        $this->password = getenv('MYSQLPASSWORD') ?: ($_ENV['MYSQLPASSWORD'] ?? ($_SERVER['MYSQLPASSWORD'] ?? ''));
+        $this->database = getenv('MYSQLDATABASE') ?: ($_ENV['MYSQLDATABASE'] ?? ($_SERVER['MYSQLDATABASE'] ?? 'defaultdb'));
+        $this->port     = getenv('MYSQLPORT')     ?: ($_ENV['MYSQLPORT']     ?? ($_SERVER['MYSQLPORT']     ?? 3306));
         try {
             $this->connection = mysqli_init();
 
             if ($this->host !== 'localhost' && $this->host !== '127.0.0.1') {
                 mysqli_ssl_set($this->connection, NULL, NULL, NULL, NULL, NULL);
+                // Disable strict peer verification for cloud MySQL if needed
+                mysqli_options($this->connection, MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, false);
                 mysqli_real_connect(
                     $this->connection,
                     $this->host,
@@ -51,7 +53,7 @@ class Config {
                     (int)$this->port
                 );
             }
-        } catch(mysqli_sql_exception $e) {
+        } catch (mysqli_sql_exception $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
             exit();
